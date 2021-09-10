@@ -13,8 +13,8 @@
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
- * License for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * this program; see the file LICENSE.  If not, see http://www.gnu.org/licenses/
@@ -54,7 +54,9 @@ void run_rho(fact_obj_t *fobj) {
 		mpz_gcd(curr_gcd, temp, fobj->rho_obj.gmp_n);
 		iterations++;
 	} while (mpz_get_ui(curr_gcd) == 1 && iterations < max_iterations);
+#if DEBUG
 	final_index = iterations * 2;
+#endif
 
 	if (mpz_cmp(curr_gcd, fobj->rho_obj.gmp_n) == 0 || mpz_get_ui(curr_gcd) == 1) {
 		mpz_set_ui(f, 0);

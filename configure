@@ -1,0 +1,52 @@
+#!/bin/sh
+
+LOOP_COUNT=1
+MAX_ITERATIONS=1000
+DEBUG=0
+
+scriptname="$0"
+
+while [ $# != 0 ] ; do
+
+	# Get the first arg, and shuffle
+	option=$1 ; arg2=no
+	shift
+
+	# Split out the argument for options that take them
+	case ${option} in
+	*=*) optarg=`echo ${option} | sed -e 's,^[^=]*=,,;s,/$,,'` ;;
+	esac
+
+	# Process the options
+	case ${option} in
+	--loop-count)     LOOP_COUNT=$1 ; arg2=yes ;;
+	--max-iterations) MAX_ITERATIONS=$1 ; arg2=yes ;;
+	--debug)          DEBUG=$1 ; arg2=yes ;;
+
+	--loop-count=*)     LOOP_COUNT=${optarg} ;;
+	--max-iterations=*) MAX_ITERATIONS=${optarg} ;;
+	--debug=*)          DEBUG=${optarg} ;;
+
+	--*)
+		echo "${scriptname} WARNING: unrecognized option: '${option}'" 1>&2 ;;
+	*=* | *-*-*) ;;
+	*)
+		echo "${scriptname} unrecognized option: '${option}'" 1>&2
+		exit 1 ;;
+	esac
+
+	# Check if the option took a separate argument
+	if [ "${arg2}" = yes ] ; then
+		if [ $# != 0 ] ; then args="${args} \"$1\"" ; shift
+		else echo "${scriptname} Missing argument to '${option}'" 1>&2
+			exit 1
+		fi
+	fi
+done
+
+cat > Makefile << EOF
+LOOP_COUNT = ${LOOP_COUNT}
+MAX_ITERATIONS = ${MAX_ITERATIONS}
+DEBUG = ${DEBUG}
+EOF
+cat "Makefile.in" >> Makefile

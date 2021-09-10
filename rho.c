@@ -102,12 +102,16 @@ static int rho(int comp_index, bool import, char *importFilename) {
 			}
 		}
 	}
+#if DEBUG
 	printf("Factor: %ld\n", factor);			// Print the factor
 	if (fobj.rho_obj.curr_poly != NUM_POLYS) {
 		printf("Polynomial: x^2+%d\n", fobj.rho_obj.polynomials[fobj.rho_obj.curr_poly]);	// Print the polynomial used
 	}
 	printf("Ending index: %d\n", final_index);		// Print the ending index
 	printf("Function calls: %d\n", function_calls);		// Print the ending index
+#else
+	printf("%ld\n", factor);			// Print the factor
+#endif
 	free_factobj(&fobj);
 	return 0;				// Always return 0 if there's no error
 }
