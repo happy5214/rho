@@ -66,14 +66,17 @@ int max_iterations = MAX_ITERATIONS;
  * @param comp_index: The index in composites chosen for the test.
  * @param import: Whether to import composites from a file.
  * @param importFilename: The file to import from.
+ * @param compositeNumber: A provided composite number.
  * @return 0 on success
  */
-static int rho(int comp_index, bool import, char *importFilename) {
+static int rho(int comp_index, bool import, char *importFilename, char *compositeNumber) {
 	fact_obj_t fobj;
 	init_factobj(&fobj);
 	polys = fobj.rho_obj.polynomials;
 	char *composite;
-	if (import) {
+	if (compositeNumber[0]) {
+		composite = compositeNumber;
+	} else if (import) {
 		Composite *composites;
 		int compositeCount = readComposites(&composites, importFilename);
 		if (comp_index >= compositeCount)
@@ -126,6 +129,8 @@ static int rho(int comp_index, bool import, char *importFilename) {
 int main(const int argc, const char * const argv[]) {
 	int comp_index = 0;				// A composite index
 	bool import = false;
+	char compositeNumber[MAX_NUM_SIZE];
+	compositeNumber[0] = '\0';
 	char importFilename[30];
 
 	// Legal command-line arguments
@@ -134,6 +139,7 @@ int main(const int argc, const char * const argv[]) {
 		{ 'I', "import",     ap_maybe },	// Whether to import the composites from a file
 		{ 'p', "polynomial", ap_yes   },	// Use a specific polynomial
 		{ 'c', "composite",  ap_yes   },	// An index for the composite array
+		{ 'n', "number",     ap_yes   },	// A specific number to factor
 		{ 'g', "gcd-step",   ap_yes   },	// How many GCD calculations to merge at once
 		{ 'i', "iterations", ap_yes   },	// The iterations limit for the algorithm
 		{ 'l', "loop",       ap_yes   } };	// An optional number of times to repeat the whole thing
@@ -150,10 +156,15 @@ int main(const int argc, const char * const argv[]) {
 			case 'I':
 				import = true;
 				if (arg[0]) {
-					strncpy(importFilename, arg, 30);
+					strncpy(importFilename, arg, 30 - 1);
+					importFilename[29] = '\0';
 				} else {
 					strcpy(importFilename, "composites.txt");
 				}
+				break;
+			case 'n':
+				strncpy(compositeNumber, arg, MAX_NUM_SIZE - 1);
+				compositeNumber[MAX_NUM_SIZE - 1] = '\0';
 				break;
 			case 'p': only_one_poly = true; single_poly = strtol(arg, NULL, 10); break;
 			case 'c': comp_index = strtol(arg, NULL, 10); break;
@@ -164,5 +175,5 @@ int main(const int argc, const char * const argv[]) {
 	}
 
 	// Tail-call the rho starter
-	return rho(comp_index, import, importFilename);
+	return rho(comp_index, import, importFilename, compositeNumber);
 }
