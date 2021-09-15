@@ -24,24 +24,20 @@ code to the public domain.
 //support libraries
 #include <gmp.h>
 #include "types.h"
+#include "rhoTypes.h"
 
-#define NUM_POLYS 3
+void init_factobj(fact_obj_t *fobj);
+void free_factobj(fact_obj_t *fobj);
+void alloc_factobj(fact_obj_t *fobj);
 
-typedef struct
-{
-	mpz_t gmp_n;
-	mpz_t gmp_f;
-	uint32 iterations;
-	uint32 num_poly;
-	uint32 *polynomials;
-	uint32 curr_poly;			//current polynomial in the list of polynomials
-	double ttime;
+/*--------------DECLARATIONS FOR MANAGING FACTORS FOUND -----------------*/
 
-} rho_obj_t;
+//yafu
+void add_to_factor_list(fact_obj_t *fobj, mpz_t n, FinishingState finishingState);
+void print_factors(fact_obj_t *fobj);
+void clear_factor_list(fact_obj_t *fobj);
+void delete_from_factor_list(fact_obj_t *fobj, mpz_t n);
 
-typedef struct
-{
-	rho_obj_t rho_obj;			//info for any rho work
-} fact_obj_t;
+int is_mpz_prp(mpz_t n);
 
 #endif //_FACTOR_H

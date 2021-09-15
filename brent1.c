@@ -27,12 +27,13 @@
 
 #include "rho.h"
 
-void run_rho(fact_obj_t *fobj) {
+FinishingState run_rho(fact_obj_t *fobj) {
 	uint32 c = fobj->rho_obj.curr_poly;
 	mpz_t x, y, product, curr_gcd, temp, f;
 
 	uint32_t i, skip_counter, power;
 	int iterations;
+	int function_calls = 0;
 
 	// Initialize local bigints
 	mpz_init(x);				// "Tortoise"
@@ -52,7 +53,7 @@ void run_rho(fact_obj_t *fobj) {
 
 		skip_counter = 0;
 		do {
-			g(y, y, fobj->rho_obj.gmp_n, temp);
+			g(y, y, fobj->rho_obj.gmp_n, temp, &function_calls);
 
 			mpz_sub(temp, x, y); //q = q*abs(x-y) mod n
 			mpz_abs(temp, temp);
@@ -69,7 +70,7 @@ void run_rho(fact_obj_t *fobj) {
 		mpz_set(f, curr_gcd);
 	}
 #if DEBUG
-	final_index = iterations;
+	int final_index = iterations;
 #endif
 
 free:
@@ -80,4 +81,11 @@ free:
 	mpz_clear(curr_gcd);
 	mpz_set(fobj->rho_obj.gmp_f, f);
 	mpz_clear(f);
+
+#if DEBUG
+	FinishingState returnValue = {function_calls, final_index};
+#else
+	FinishingState returnValue = {0, 0};
+#endif
+	return returnValue;
 }

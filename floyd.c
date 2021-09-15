@@ -24,12 +24,13 @@
 
 #include "rho.h"
 
-void run_rho(fact_obj_t *fobj) {
+FinishingState run_rho(fact_obj_t *fobj) {
 	uint32 c = fobj->rho_obj.curr_poly;
 	mpz_t x, y, curr_gcd, temp, f;
 
 	uint32_t i, skip_counter, power;
 	int iterations;
+	int function_calls = 0;
 
 	// Initialize local bigints
 	mpz_init_set_ui(x, X_0);		// "Tortoise"
@@ -43,10 +44,10 @@ void run_rho(fact_obj_t *fobj) {
 	iterations = 0;				// Rho iteration count
 
 	do {
-		g(x, x, fobj->rho_obj.gmp_n, temp);
+		g(x, x, fobj->rho_obj.gmp_n, temp, &function_calls);
 
 		for (i = 0; i < 2; i++) {
-			g(y, y, fobj->rho_obj.gmp_n, temp);
+			g(y, y, fobj->rho_obj.gmp_n, temp, &function_calls);
 		}
 
 		mpz_sub(temp, x, y);
@@ -55,7 +56,7 @@ void run_rho(fact_obj_t *fobj) {
 		iterations++;
 	} while (mpz_get_ui(curr_gcd) == 1 && iterations < max_iterations);
 #if DEBUG
-	final_index = iterations * 2;
+	int final_index = iterations * 2;
 #endif
 
 	if (mpz_cmp(curr_gcd, fobj->rho_obj.gmp_n) == 0 || mpz_get_ui(curr_gcd) == 1) {
@@ -72,4 +73,11 @@ free:
 	mpz_clear(curr_gcd);
 	mpz_set(fobj->rho_obj.gmp_f, f);
 	mpz_clear(f);
+
+#if DEBUG
+	FinishingState returnValue = {function_calls, final_index};
+#else
+	FinishingState returnValue = {0, 0};
+#endif
+	return returnValue;
 }

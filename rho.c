@@ -61,62 +61,99 @@ int gcd_step = GCD_STEP;
 int max_iterations = MAX_ITERATIONS;
 
 /**
- * Run rho loop.
+ * Load the composite number to test.
  *
+ * @param composite: The buffer to store the composite number in.
  * @param comp_index: The index in composites chosen for the test.
  * @param import: Whether to import composites from a file.
  * @param importFilename: The file to import from.
  * @param compositeNumber: A provided composite number.
  * @return 0 on success
  */
-static int rho(int comp_index, bool import, char *importFilename, char *compositeNumber) {
-	fact_obj_t fobj;
-	init_factobj(&fobj);
-	polys = fobj.rho_obj.polynomials;
-	char *composite;
+static bool loadComposite(char *composite, int comp_index, bool import, char *importFilename, char *compositeNumber) {
 	if (compositeNumber[0]) {
-		composite = compositeNumber;
+		strncpy(composite, compositeNumber, MAX_NUM_SIZE - 1);
 	} else if (import) {
 		Composite *composites;
 		int compositeCount = readComposites(&composites, importFilename);
 		if (comp_index >= compositeCount)
-			return 1;
-		composite = composites[comp_index].number;
+			return false;
+		strncpy(composite, composites[comp_index].number, MAX_NUM_SIZE - 1);
 		free(composites);
 	} else {
-		composite = compositeNums[comp_index];
+		strncpy(composite, compositeNums[comp_index], MAX_NUM_SIZE - 1);
 	}
+	composite[MAX_NUM_SIZE - 1] = '\0';
+	return true;
+}
+
+static void rho_loop(fact_obj_t *fobj);
+static bool rho_inner(fact_obj_t *fobj);
+
+/**
+ * Run rho algorithm.
+ *
+ * @param compositeNumber: The number to factor.
+ * @return 0 on success
+ */
+static int rho(char *composite) {
+	fact_obj_t fobj;
+	init_factobj(&fobj);
 	mpz_set_str(fobj.rho_obj.gmp_n, composite, 10);
-	uint64_t factor;			// The factor found by rho
-	for (int i = 0; i < loop_count; i++) {	// Loop m times, where m is given on command line or 1
-		if (only_one_poly) {
-			fobj.rho_obj.curr_poly = NUM_POLYS - single_poly;
-			run_rho(&fobj);		// Actually run rho algorithm (dependent on algorithm linked)
-			factor = mpz_get_ui(fobj.rho_obj.gmp_f);
-		} else {
-			fobj.rho_obj.curr_poly = 0;		// An index for polys
-			while (fobj.rho_obj.curr_poly < NUM_POLYS) {	// Loop through polynomials
-				run_rho(&fobj);		// Actually run rho algorithm (dependent on algorithm linked)
-				factor = mpz_get_ui(fobj.rho_obj.gmp_f);
-				if (factor) {		// We found a factor!
-					break;
-				}
-				fobj.rho_obj.curr_poly++;
-			}
-		}
-	}
-#if DEBUG
-	printf("Factor: %ld\n", factor);			// Print the factor
-	if (fobj.rho_obj.curr_poly != NUM_POLYS) {
-		printf("Polynomial: x^2+%d\n", fobj.rho_obj.polynomials[fobj.rho_obj.curr_poly]);	// Print the polynomial used
-	}
-	printf("Ending index: %d\n", final_index);		// Print the ending index
-	printf("Function calls: %d\n", function_calls);		// Print the ending index
-#else
-	printf("%ld\n", factor);			// Print the factor
-#endif
+	polys = fobj.rho_obj.polynomials;
+	rho_loop(&fobj);
+	print_factors(&fobj);
 	free_factobj(&fobj);
 	return 0;				// Always return 0 if there's no error
+}
+
+static void rho_loop(fact_obj_t *fobj) {
+	if ((mpz_cmp_ui(fobj->rho_obj.gmp_n, 1) == 0) || (mpz_cmp_ui(fobj->rho_obj.gmp_n, 0) == 0))
+		return;
+
+	if (mpz_cmp_ui(fobj->rho_obj.gmp_n, 2) == 0)
+		return;
+
+	bool fullyFactored = false;
+	if (only_one_poly) {
+		fobj->rho_obj.curr_poly = NUM_POLYS - single_poly;
+		rho_inner(fobj);		// Actually run rho algorithm (dependent on algorithm linked)
+	} else {
+		fobj->rho_obj.curr_poly = 0;		// An index for polys
+		while (fobj->rho_obj.curr_poly < NUM_POLYS) {	// Loop through polynomials
+			fullyFactored = rho_inner(fobj);		// Actually run rho algorithm (dependent on algorithm linked)
+			if (fullyFactored) {		// We found a factor!
+				break;
+			}
+			fobj->rho_obj.curr_poly++;
+		}
+	}
+}
+
+static bool rho_inner(fact_obj_t *fobj) {
+	//for each different constant, first check primalty because each
+	//time around the number may be different
+	if (is_mpz_prp(fobj->rho_obj.gmp_n)) {
+		FinishingState dummyState = {-1, -1};
+		add_to_factor_list(fobj, fobj->rho_obj.gmp_n, dummyState);
+		mpz_set_ui(fobj->rho_obj.gmp_n, 1);
+		return true;
+	}
+
+	//call rho algorithm
+	FinishingState finishingState = run_rho(fobj);
+
+	//check to see if 'f' is non-trivial
+	if ((mpz_cmp_ui(fobj->rho_obj.gmp_f, 1) > 0)
+		&& (mpz_cmp(fobj->rho_obj.gmp_f, fobj->rho_obj.gmp_n) < 0)) {
+		//non-trivial factor found
+
+		add_to_factor_list(fobj, fobj->rho_obj.gmp_f, finishingState);
+
+		//reduce input
+		mpz_tdiv_q(fobj->rho_obj.gmp_n, fobj->rho_obj.gmp_n, fobj->rho_obj.gmp_f);
+	}
+	return false;
 }
 
 /**
@@ -129,6 +166,7 @@ static int rho(int comp_index, bool import, char *importFilename, char *composit
 int main(const int argc, const char * const argv[]) {
 	int comp_index = 0;				// A composite index
 	bool import = false;
+	char composite[MAX_NUM_SIZE];
 	char compositeNumber[MAX_NUM_SIZE];
 	compositeNumber[0] = '\0';
 	char importFilename[30];
@@ -174,6 +212,9 @@ int main(const int argc, const char * const argv[]) {
 		}
 	}
 
+	if (!loadComposite(composite, comp_index, import, importFilename, compositeNumber)) {
+        return 1;
+    }
 	// Tail-call the rho starter
-	return rho(comp_index, import, importFilename, compositeNumber);
+	return rho(composite);
 }
