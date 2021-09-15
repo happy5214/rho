@@ -39,8 +39,9 @@ typedef enum { false = 0, true = 1 } bool;
 typedef enum { PRIME = 0, PRP = 1, COMPOSITE = 2, UNKNOWN = 3 } FactorType;
 
 typedef struct {
-	int function_calls;
 	int final_index;
+	int function_calls;
+	int gcd_calls;
 } FinishingState;
 
 typedef struct {
