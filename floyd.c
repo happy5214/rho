@@ -30,7 +30,7 @@ FinishingState run_rho(fact_obj_t *fobj) {
 
 	uint32_t i, skip_counter, power;
 	int iterations;
-	int function_calls = 0;
+	FinishingState finishingState = {0, 0, 0};
 
 	// Initialize local bigints
 	mpz_init_set_ui(x, X_0);		// "Tortoise"
@@ -44,10 +44,10 @@ FinishingState run_rho(fact_obj_t *fobj) {
 	iterations = 0;				// Rho iteration count
 
 	do {
-		g(x, x, fobj->rho_obj.gmp_n, temp, &function_calls);
+		square(x, x);
 
 		for (i = 0; i < 2; i++) {
-			g(y, y, fobj->rho_obj.gmp_n, temp, &function_calls);
+			square(y, y);
 		}
 
 		mpz_sub(temp, x, y);
@@ -56,7 +56,7 @@ FinishingState run_rho(fact_obj_t *fobj) {
 		iterations++;
 	} while (mpz_get_ui(curr_gcd) == 1 && iterations < max_iterations);
 #if DEBUG
-	int final_index = iterations * 2;
+	finishingState.final_index = iterations * 2;
 #endif
 
 	if (mpz_cmp(curr_gcd, fobj->rho_obj.gmp_n) == 0 || mpz_get_ui(curr_gcd) == 1) {
@@ -74,10 +74,5 @@ free:
 	mpz_set(fobj->rho_obj.gmp_f, f);
 	mpz_clear(f);
 
-#if DEBUG
-	FinishingState returnValue = {function_calls, final_index};
-#else
-	FinishingState returnValue = {0, 0};
-#endif
-	return returnValue;
+	return finishingState;
 }

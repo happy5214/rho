@@ -47,12 +47,22 @@ uint32 *polys;
 
 mpz_t constant;
 
-static inline void g(mpz_t output, mpz_t input, mpz_t n, mpz_t temp, int *function_calls) {
+#if DEBUG
+#define square(out,in) (g((out), (in), fobj->rho_obj.gmp_n, temp, &finishingState))
+#else
+#define square(out,in) (g((out), (in), fobj->rho_obj.gmp_n, temp))
+#endif
+
+#if DEBUG
+static inline void g(mpz_t output, mpz_t input, mpz_t n, mpz_t temp, FinishingState *finishingState) {
+#else
+static inline void g(mpz_t output, mpz_t input, mpz_t n, mpz_t temp) {
+#endif
 	mpz_mul(temp, input, input);
 	mpz_add(temp, temp, constant);
 	mpz_tdiv_r(output, temp, n);
 #if DEBUG
-	(*function_calls)++;
+	finishingState->function_calls++;
 #endif
 }
 
