@@ -206,6 +206,6 @@ static void print_factor(fact_obj_t *fobj, factor_t factor) {
 	printf("Ending index: %d\n", factor.finishingState.final_index);		// Print the ending index
 	printf("Function calls: %d\n", factor.finishingState.function_calls);		// Print the number of function calls
 #else
-	gmp_printf("%ld\n", factor.factor);			// Print the factor
+	gmp_printf("%Zd\n", factor.factor);			// Print the factor
 #endif
 }

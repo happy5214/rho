@@ -31,11 +31,12 @@
 
 /*-------------------------------CUSTOM----------------------------------*/
 
-#define MAX_NUM_SIZE 200
+#define MAX_NUM_SIZE 501
 #define NUM_POLYS 3
 
 typedef enum { false = 0, true = 1 } bool;
 
+/* Adapted from #define directives in arith.h (yafu). */
 typedef enum { PRIME = 0, PRP = 1, COMPOSITE = 2, UNKNOWN = 3 } FactorType;
 
 typedef struct {
@@ -43,20 +44,6 @@ typedef struct {
 	int function_calls;
 	int gcd_calls;
 } FinishingState;
-
-typedef struct {
-	int floyd;
-	int brent;
-	int yafu;
-	int montgomery;
-} MaxLength;
-
-typedef struct {
-	char number[MAX_NUM_SIZE];
-	int aliquotSeq;
-	short aliquotTerm;
-	MaxLength maxLengths[NUM_POLYS];
-} Composite;
 
 /*--------------------------FROM YAFU.H----------------------------------*/
 

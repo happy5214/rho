@@ -42,10 +42,9 @@
 #define G_CONSTANT 1
 #define GCD_STEP 10
 
-int gcd_step, max_iterations;
-uint32 *polys;
-
-mpz_t constant;
+extern int gcd_step, max_iterations;
+extern uint32 *polys;
+extern mpz_t constant;
 
 #if DEBUG
 #define square(out,in) (g((out), (in), fobj->rho_obj.gmp_n, temp, &finishingState))
@@ -67,7 +66,5 @@ static inline void g(mpz_t output, mpz_t input, mpz_t n, mpz_t temp) {
 }
 
 FinishingState run_rho(fact_obj_t *fobj);
-
-int readComposites(Composite **composites, char *filename);
 
 #endif // RHO_H
