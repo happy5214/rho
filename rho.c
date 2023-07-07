@@ -116,6 +116,17 @@ static bool rho_inner(fact_obj_t *fobj) {
 	return false;
 }
 
+static const char * const program_year = "2023";
+
+static void show_version() {
+	printf("Rho Calculator\n");
+	printf("Copyright (C) %s Alexander Jones.\n", program_year);
+	printf("Based on yafu, which has been released into the public domain by Ben Buhrow.\n");
+	printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n"
+			"This is free software: you are free to change and redistribute it.\n"
+			"There is NO WARRANTY, to the extent permitted by law.\n");
+}
+
 /**
  * Start a rho run.
  *
@@ -130,6 +141,7 @@ int main(const int argc, const char * const argv[]) {
 	// Legal command-line arguments
 	const struct ap_Option options[] =
 		{
+		{ 'V', "version",    ap_no    },	// Display the version information
 		{ 'p', "polynomial", ap_yes   },	// Use a specific polynomial
 		{ 'g', "gcd-step",   ap_yes   },	// How many GCD calculations to merge at once
 		{ 'i', "iterations", ap_yes   },	// The iterations limit for the algorithm
@@ -144,6 +156,7 @@ int main(const int argc, const char * const argv[]) {
 		const int code = ap_code( &parser, argind );
 		const char * const arg = ap_argument( &parser, argind );
 		switch (code) {
+			case 'V': show_version(); return 0;
 			case 'p': only_one_poly = true; single_poly = strtol(arg, NULL, 10); break;
 			case 'g': gcd_step = strtol(arg, NULL, 10); break;
 			case 'i': max_iterations = strtol(arg, NULL, 10); break;
