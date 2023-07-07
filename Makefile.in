@@ -7,6 +7,7 @@ objs = carg_parser.o rho.o factor_common.o
 
 floyd_objs = floyd.o $(objs)
 brent1_objs = brent1.o $(objs)
+brent2_objs = brent2.o $(objs)
 
 .PHONY: all
 
@@ -18,8 +19,11 @@ floyd: $(floyd_objs)
 brent1: $(brent1_objs)
 	$(CC) -o $@ $(brent1_objs) $(LIBS)
 
+brent2: $(brent2_objs)
+	$(CC) -o $@ $(brent2_objs) $(LIBS)
+
 %.o: %.c $(HEADERS)
 	$(CC) -c -o $@ $< $(FLAGS)
 
-clean: 
-	rm -f floyd brent1 *.o
+clean:
+	rm -f floyd brent1 brent2 *.o
